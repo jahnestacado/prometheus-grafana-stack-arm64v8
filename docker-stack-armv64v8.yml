@@ -1,0 +1,22 @@
+version: "3"
+services:
+  prometheus:
+    image: rycus86/prometheus:2.7.1
+    ports:
+      - "9090:9090"
+    volumes:
+      - /home/jahn/shared/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+
+  kafka-exporter:
+    image: jahnestacado/prometheus-kafka-exporter-arm64v8 
+    ports:
+      - "9308:9308"
+    command: ["--kafka.server=${HOST_IP:?HOST_IP must be set}:19092 --kafka.server=${HOST_IP:?HOST_IP must be set}:29092 --kafka.server=${HOST_IP:?HOST_IP must be set}:39092"]
+    
+  grafana:
+    image: grafana/grafana:6.2.1
+    user: 1000:1000
+    ports:
+      - "3000:3000"
+    volumes:
+      - /home/jahn/shared/grafana:/var/lib/grafana
