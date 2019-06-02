@@ -11,7 +11,7 @@ services:
     image: jahnestacado/prometheus-kafka-exporter-arm64v8 
     ports:
       - "9308:9308"
-    command: ["--kafka.server=${HOST_IP:?HOST_IP must be set}:19092 --kafka.server=${HOST_IP:?HOST_IP must be set}:29092 --kafka.server=${HOST_IP:?HOST_IP must be set}:39092"]
+    command: ["--kafka.server=${HOST_IP:?HOST_IP must be set}:19092", "--kafka.server=${HOST_IP}:29092", "--kafka.server=${HOST_IP}:39092"]
     
   grafana:
     image: grafana/grafana:6.2.1
