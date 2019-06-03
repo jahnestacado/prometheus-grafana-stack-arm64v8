@@ -6,6 +6,7 @@ services:
       - "9090:9090"
     volumes:
       - /home/jahn/shared/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /home/jahn/shared/prometheus/data:/prometheus  
 
   kafka-exporter:
     image: jahnestacado/prometheus-kafka-exporter-arm64v8 
@@ -20,3 +21,15 @@ services:
       - "3000:3000"
     volumes:
       - /home/jahn/shared/grafana:/var/lib/grafana
+
+  cadvisor:
+    image: linuxkit/cadvisor:v0.6-arm64 
+    hostname: '{{.Node.Hostname}}'
+    deploy:
+      mode: global
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+
