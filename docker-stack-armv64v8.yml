@@ -1,32 +1,74 @@
 version: "3"
 services:
   prometheus:
-    image: rycus86/prometheus:2.7.1
+    image: prom/prometheus:v2.15.2
+    user: 1000:1000
     ports:
       - "9090:9090"
     volumes:
-      - /home/jahn/shared/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
-      - /home/jahn/shared/prometheus/data:/prometheus  
+      - /mnt/shared/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - /mnt/shared/prometheus/data:/prometheus
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+        reservations:
+          memory: 128M    
 
-  kafka-exporter:
-    image: jahnestacado/prometheus-kafka-exporter-arm64v8 
-    ports:
-      - "9308:9308"
-    command: ["--kafka.server=${HOST_IP:?HOST_IP must be set}:19092", "--kafka.server=${HOST_IP}:29092", "--kafka.server=${HOST_IP}:39092"]
+        #  kafka-exporter:
+        # image: jahnestacado/prometheus-kafka-exporter-arm64v8 
+        #    ports:
+        #     - "9308:9308"
+        #   command: ["--kafka.server=${HOST_IP:?HOST_IP must be set}:19092", "--kafka.server=${HOST_IP}:29092", "--kafka.server=${HOST_IP}:39092"]
     
   grafana:
-    image: grafana/grafana:6.2.1
+    image: grafana/grafana:6.6.0-ubuntu
     user: 1000:1000
     ports:
       - "3000:3000"
     volumes:
-      - /home/jahn/shared/grafana:/var/lib/grafana
+      - /mnt/shared/grafana:/var/lib/grafana
+    deploy:
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M    
 
-  cadvisor:
-    image: linuxkit/cadvisor:v0.6-arm64 
-    hostname: '{{.Node.Hostname}}'
+  node-exporter:
+    image: prom/node-exporter:v0.18.1
+    environment:
+      - NODE_ID={{.Node.Hostname}}
     deploy:
       mode: global
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+      - /:/rootfs:ro
+      - /etc/hostname:/etc/nodename
+    command:
+      - '--path.sysfs=/host/sys'
+      - '--path.procfs=/host/proc'
+      - '--collector.textfile.directory=/etc/node-exporter/'
+      - '--collector.filesystem.ignored-mount-points=^/(sys|proc|dev|host|etc)($$|/)'
+      - '--no-collector.ipvs'
+
+
+  cadvisor:
+    image: linuxkit/cadvisor:v0.6-arm64
+    command: -logtostderr -docker_only
+    deploy:
+      mode: global
+      resources:
+        limits:
+          memory: 64M
+        reservations:
+          memory: 32M
     volumes:
       - /:/rootfs:ro
       - /var/run:/var/run:rw
